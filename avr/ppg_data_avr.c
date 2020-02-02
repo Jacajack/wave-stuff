@@ -1,6 +1,6 @@
 #include <inttypes.h>
 #include <avr/pgmspace.h>
-#include "ppg_data.h"
+#include "ppg_data_avr.h"
 
 
 const uint8_t ppg_wavetable[] PROGMEM = {

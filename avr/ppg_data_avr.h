@@ -1,5 +1,5 @@
-#ifndef PPG_DATA_H
-#define PPG_DATA_H
+#ifndef PPG_DATA_AVR_H
+#define PPG_DATA_AVR_H
 
 #include <inttypes.h>
 #include <avr/pgmspace.h>
