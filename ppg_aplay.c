@@ -10,6 +10,8 @@
 	\author Jacek Wieczorek
 
 	\brief A proof-of-concept implementation of wavetable synthesis (based on PPG Wave).
+	
+	This is essentially a more generic version of the code in the avr_aplay directory.
 
 	For now, this program outputs 8-bit data meant for aplay on stdout. The sampling frequency is configured
 	using SAMPLING_FREQ macro.
