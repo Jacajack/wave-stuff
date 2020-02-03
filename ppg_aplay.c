@@ -37,7 +37,7 @@ static struct wavetable_entry current_wavetable[DEFAULT_WAVETABLE_SIZE];
 //! Returns a pointer to the wave with certain index (that can later be passed to get_waveform_sample())
 static inline const uint8_t *get_waveform_pointer( unsigned int index )
 {
-	return ppg_waveforms + ( index << 6 );
+	return ppg_waveforms + index * 64;
 }
 
 //! Returns a sample (float) from a waveform
@@ -125,7 +125,7 @@ const uint8_t *load_wavetable( struct wavetable_entry *entries, unsigned int wav
 
 		// Total distance between known key-waves and distance from the left one
 		int distance_total = er - el;
-		float distance_l = &entries[i] - el;
+		int distance_l = &entries[i] - el;
 
 		entries[i].ptr_l = el->ptr_l;
 		entries[i].ptr_r = er->ptr_l;
