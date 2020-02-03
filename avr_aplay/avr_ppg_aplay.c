@@ -117,7 +117,8 @@ const uint8_t *load_wavetable( struct wavetable_entry *entries, uint8_t wavetabl
 		// If the current entry contains a key-wave
 		if ( entries[i].is_key )
 		{
-			el = &entries[i];
+			// Write both pointers in case the right key waveform is not found
+			el = er = &entries[i];
 
 			// Look for the next key-wave
 			for ( uint8_t j = i + 1; j < wavetable_size; j++ )
@@ -149,6 +150,7 @@ const uint8_t *load_wavetable( struct wavetable_entry *entries, uint8_t wavetabl
 }
 
 //! Loads n-th requested wavetable from binary format
+//! Not very efficient, but it doesn't need to be.
 //! \see load_wavetable()
 const uint8_t *load_wavetable_n( struct wavetable_entry *entries, uint8_t wavetable_size, const uint8_t *data, uint8_t index )
 {
