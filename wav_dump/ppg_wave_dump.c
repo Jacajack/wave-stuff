@@ -3,6 +3,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 
 #include "../data/ppg_data.h"
 
@@ -14,6 +15,12 @@
 	
 */
 
+uint8_t get_waveform_sample(uint8_t waveform_id, uint8_t phase)
+{
+	assert(phase < 128);
+	return phase < 64 ? ppg_waveforms[waveform_id * 64 + phase]
+		              : ~ppg_waveforms[waveform_id * 64 + 63 - (phase - 64)];
+}
 
 int main(int argc, char **argv)
 {
@@ -41,7 +48,7 @@ int main(int argc, char **argv)
 	{
 		for (int sample = 0; sample < 128; sample++)
 		{
-			putchar(ppg_waveforms[wave_index * 64 + sample]);
+			putchar(get_waveform_sample(wave_index, sample));
 		}
 	}
 
