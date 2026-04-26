@@ -26,9 +26,6 @@ struct wavetable_entry
 	uint8_t is_key;
 };
 
-//! Contains currently used wavetable
-static struct wavetable_entry current_wavetable[DEFAULT_WAVETABLE_SIZE];
-
 //! Returns a pointer to the wave with certain index (that can later be passed to get_waveform_sample())
 static inline const uint8_t *get_waveform_pointer( unsigned int index )
 {
@@ -65,12 +62,6 @@ static inline float get_wavetable_sample( const struct wavetable_entry *e, float
 	return ( 1.f - t ) * sample_l + t * sample_r;
 }
 
-//! Reads a single sample from the global wavetable
-static inline float get_current_wavetable_sample( unsigned int slot, float phase )
-{
-	return get_wavetable_sample( current_wavetable + slot, phase );
-}
-
 /**
 	Load a wavetable stored in PPG Wave 2.2 format into an array of wavetable_entry structs of size wavetable_size
 	Returns a pointer to the next wavetable
@@ -90,12 +81,13 @@ const uint8_t *load_wavetable( struct wavetable_entry *entries, unsigned int wav
 		waveform = *data++;
 		pos = *data++;
 
-		entries[pos].ptr_l = get_waveform_pointer( waveform );
-		entries[pos].ptr_r = NULL;
-		entries[pos].factor = 0;
-		entries[pos].is_key = 1;
+		unsigned int mapped_pos = pos * wavetable_size / DEFAULT_WAVETABLE_SIZE;
+		entries[mapped_pos].ptr_l = get_waveform_pointer(waveform);
+		entries[mapped_pos].ptr_r = NULL;
+		entries[mapped_pos].factor = 0;
+		entries[mapped_pos].is_key = 1;
 	}
-	while ( pos < wavetable_size - 1 );
+	while ( pos < DEFAULT_WAVETABLE_SIZE - 1 );
 
 	// Now, generate interpolation coefficients
 	const struct wavetable_entry *el = NULL, *er = NULL;
@@ -150,14 +142,21 @@ int main( int argc, char **argv )
 {
 	if (argc < 3)
 	{
-		fprintf(stderr, "Usage: %s <WAVETABLE INDEX> <REPEAT>\n", argv[0]);
+		fprintf(stderr, "Usage: %s <WT_SIZE> <WAVETABLE INDEX> <REPEAT>\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
 	
+	// Wavetable size
+	int wt_size;
+	if (sscanf(argv[1], "%d", &wt_size) != 1 || wt_size <= 0)
+	{
+		fprintf(stderr, "invalid wavetable size\n");
+		exit(EXIT_FAILURE);
+	}
 	
 	// Wavetable index
 	int wt_index;
-	if (sscanf(argv[1], "%d", &wt_index) != 1 || wt_index < 0)
+	if (sscanf(argv[2], "%d", &wt_index) != 1 || wt_index < 0)
 	{
 		fprintf(stderr, "invalid wavetable index\n");
 		exit(EXIT_FAILURE);
@@ -166,17 +165,18 @@ int main( int argc, char **argv )
 	// How many times should each waveform be repeated
 	// before switching to the next one
 	int repeat;
-	if (sscanf(argv[2], "%d", &repeat) != 1 || repeat <= 0)
+	if (sscanf(argv[3], "%d", &repeat) != 1 || repeat <= 0)
 	{
 		fprintf(stderr, "invalid repeat value\n");
 		exit(EXIT_FAILURE);
 	}
 	
 	// Load wavetable
-	load_wavetable_n(current_wavetable, DEFAULT_WAVETABLE_SIZE, ppg_wavetable, wt_index);
+	struct wavetable_entry wt[wt_size];
+	load_wavetable_n(wt, wt_size, ppg_wavetable, wt_index);
 
 	// For each slot
-	for (int slot = 0; slot < DEFAULT_WAVETABLE_SIZE; slot++)
+	for (int slot = 0; slot < wt_size; slot++)
 	{
 		// Reapeat each waveform
 		for (int i = 0; i < repeat; i++)
@@ -184,7 +184,7 @@ int main( int argc, char **argv )
 			// Dump waveform
 			for (int phase = 0; phase < 128; phase++)
 			{
-				float sample = get_current_wavetable_sample(slot, phase / 128.f);
+				float sample = get_wavetable_sample(&wt[slot], phase / 128.f);
 				putchar( 128 + sample * 127.f );
 			}
 		}
